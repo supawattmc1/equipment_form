@@ -162,7 +162,8 @@
           </div>
           <div class="canva-card rounded-2xl px-5 py-4 min-w-[190px] bg-white border border-teal-900/10 shadow-sm">
             <p class="canva-text text-xs font-bold uppercase tracking-[0.12em] text-teal-700">จำนวนที่บันทึกแล้ว</p>
-            <p id="record-count" class="mt-1 text-3xl font-extrabold text-teal-800" aria-live="polite">0</p>
+            <!-- แสดงข้อความกำลังเชื่อมต่อ และจะเปลี่ยนเป็นตัวเลขเมื่อโหลดเสร็จ -->
+            <p id="record-count" class="mt-1 text-sm font-bold text-teal-600 animate-pulse" aria-live="polite">กำลังเชื่อมต่อ...</p>
           </div>
         </div>
       </div>
@@ -419,7 +420,6 @@
     // REAL BACKEND SDK (Google Sheets API)
     // ----------------------------------------------------
     
-    // เอา URL ที่ได้จากขั้นตอนที่ 2 มาใส่ในเครื่องหมายคำพูดด้านล่างนี้เลยครับ
     const API_URL = "https://script.google.com/macros/s/AKfycbzo9iRb-TY_sVBiYcQy6BzHUuT9zPRvTziqN5xXNrv18LgPntSf6DvHzKYoX60sD2eL/exec"; 
 
     window.dataSdk = {
@@ -904,6 +904,9 @@
 
       const hasRecords = recordsToShow.length > 0;
       emptyState.classList.toggle("hidden", hasRecords);
+      
+      // ปรับรูปแบบแสดงจำนวนรวมเมื่อเชื่อมต่อสำเร็จและได้ข้อมูลแล้ว
+      recordCount.className = "mt-1 text-3xl font-extrabold text-teal-800";
       recordCount.textContent = String(state.records.length);
 
       if (state.records.length === 0) {
@@ -976,7 +979,7 @@
         inspector: inputs.inspector.value.trim(),
         inspection_date: toIsoDate(inputs.inspectionDate.value),
         acquisition_date: toIsoDate(inputs.acquisitionDate.value),
-        related_remarks: inputs.relatedRemarks.value.trim(),
+        relatedRemarks: inputs.relatedRemarks.value.trim(),
         remarks: inputs.remarks.value.trim()
       };
 
@@ -1015,14 +1018,22 @@
     async function initializeApp() {
       resetForm();
       lucide.createIcons();
+      
+      // ตั้งค่าการแสดงผลตอนกำลังเริ่มเชื่อมต่อ
+      recordCount.className = "mt-1 text-sm font-bold text-teal-600 animate-pulse";
+      recordCount.textContent = "กำลังเชื่อมต่อ...";
       setStatus(listStatus, "กำลังโหลดรายการตรวจนับ...", "neutral");
 
       try {
         const result = await window.dataSdk.init(dataHandler);
         if (!result.isOk) {
+          recordCount.className = "mt-1 text-sm font-bold text-red-600";
+          recordCount.textContent = "เชื่อมต่อล้มเหลว";
           setStatus(listStatus, "ไม่สามารถโหลดข้อมูลรายการตรวจนับได้", "error");
         }
       } catch (error) {
+        recordCount.className = "mt-1 text-sm font-bold text-red-600";
+        recordCount.textContent = "เชื่อมต่อล้มเหลว";
         setStatus(listStatus, "ไม่สามารถเชื่อมต่อเพื่อโหลดข้อมูลได้", "error");
       }
     }
